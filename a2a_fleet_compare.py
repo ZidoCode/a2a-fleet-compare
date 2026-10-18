@@ -61,7 +61,13 @@ def audit(cards):
         n = _norm(card.get("name", ""))
         if n:
             names.setdefault(n, []).append(cname)
-        for iface in ([card.get("supportedInterfaces")] if card.get("supportedInterfaces") else []) or []:
+        # supportedInterfaces is a list of {url, protocolVersion, ...} objects.
+        # Wrapping it in another list made every element invisible, so two
+        # agents pointing at the same endpoint came back "ALL CLEAR".
+        interfaces = card.get("supportedInterfaces") or []
+        if isinstance(interfaces, dict):
+            interfaces = [interfaces]
+        for iface in interfaces:
             if isinstance(iface, dict) and iface.get("url"):
                 urls.setdefault(iface["url"], []).append(cname)
         if card.get("url"):

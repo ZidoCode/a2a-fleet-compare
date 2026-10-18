@@ -118,5 +118,19 @@ class CliTests(unittest.TestCase):
         self.assertEqual(rc, 2)
 
 
+class SharedInterfaceTests(unittest.TestCase):
+    """supportedInterfaces entries must be compared, not silently skipped."""
+
+    def test_shared_interface_url_is_critical(self):
+        shared = [{"url": "https://shared.example/rpc", "protocolVersion": "0.3.0"}]
+        f, _s = fc.audit([
+            ("a.json", card(name="A", supportedInterfaces=shared, skills=[skill("s1", "Alpha")])),
+            ("b.json", card(name="B", supportedInterfaces=shared, skills=[skill("s2", "Beta")])),
+        ])
+        text = " ".join(m for _sev, m in f)
+        self.assertIn("https://shared.example/rpc", text)
+        self.assertTrue(any(sev == "CRITICAL" for sev, _m in f))
+
+
 if __name__ == "__main__":
     unittest.main()
